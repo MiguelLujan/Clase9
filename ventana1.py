@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLabel, QHBoxLayout, QA
     QPushButton, QDialog, QDialogButtonBox, QVBoxLayout
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import Qt
-
+from cliente import Cliente
 
 class Ventana1(QMainWindow):
 
@@ -181,7 +181,6 @@ class Ventana1(QMainWindow):
         self.ladoIzquierdo.addRow(self.botonRegistrar, self.botonLimpiar)
 
 
-
         # Agregamos el layout ladoIzquiero al layout horizontal:
         self.horizontal.addLayout(self.ladoIzquierdo)
 
@@ -352,8 +351,6 @@ class Ventana1(QMainWindow):
         self.ladoDerecho.addRow(self.botonBuscar, self.botonRecuperar)
 
 
-
-
         # Agregamos el layout ladoDerecho al layout horizontal:
         self.horizontal.addLayout(self.ladoDerecho)
 
@@ -363,24 +360,8 @@ class Ventana1(QMainWindow):
         #  Indicamos que el layout principal del fondo es horizontal
         self.fondo.setLayout(self.horizontal)
 
-    # Metodo del botonLimpiar:
 
-    def accion_botonLimpiar(self):
-        self.nombreCompleto.setText('')
-        self.usuario.setText('')
-        self.password.setText('')
-        self.password2.setText('')
-        self.documento.setText('')
-        self.correo.setText('')
-        self.pregunta1.setText('')
-        self.respuesta1.setText('')
-        self.pregunta2.setText('')
-        self.respuesta2.setText('')
-        self.pregunta3.setText('')
-        self.respuesta3.setText('')
 
-    # Metodo del botonRegistrar
-    def accion_botonRegistrar(self):
         # Creamos la ventana de dialogo:
         self.ventanaDialogo = QDialog(None, QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
 
@@ -418,6 +399,26 @@ class Ventana1(QMainWindow):
 
         # Variable para controlar que se han ingresado los datos correctos:
         self.datosCorrectos = True
+
+
+    # Metodo del botonLimpiar:
+
+    def accion_botonLimpiar(self):
+        self.nombreCompleto.setText('')
+        self.usuario.setText('')
+        self.password.setText('')
+        self.password2.setText('')
+        self.documento.setText('')
+        self.correo.setText('')
+        self.pregunta1.setText('')
+        self.respuesta1.setText('')
+        self.pregunta2.setText('')
+        self.respuesta2.setText('')
+        self.pregunta3.setText('')
+        self.respuesta3.setText('')
+
+    # Metodo del botonRegistrar
+    def accion_botonRegistrar(self):
 
         # Validamos que los passwords sean iguales
         if (
@@ -491,10 +492,120 @@ class Ventana1(QMainWindow):
             self.file.close()
 
 
-
     # Metodo del botonBuscar
     def accion_botonBuscar(self):
-        pass
+
+        # Establecemos el titulo de la ventana:
+        self.ventanaDialogo.setWindowTitle("Buscar preguntas de validación")
+
+        # Validar que se haya ingresado el documento:
+        if(
+            self.documento.text() == ''
+        ):
+            self.datosCorrectos = False
+
+            # Escribimos el texto explicativo:
+            self.mensaje.setText("Si va a buscar las preguntas"
+                                 "\npara recuperar la contraseña."
+                                 "\nDebe primero, ingresar el documento.")
+
+            # Hacemos que la ventana de dialogo se vea:
+            self.ventanaDialogo.exec_()
+
+        # validar si el documento es numerico:
+        if (
+            not self.documento.text().isnumeric()
+        ):
+            self.datosCorrectos = False
+
+            # Escribimos el texto explicativo:
+            self.mensaje.setText("El documento debe ser númerico."
+                                 "\nNo ingrese letras"
+                                 "\nni caracterés especiales.")
+
+            # Hacemos que la ventana de dialogo se vea:
+            self.ventanaDialogo.exec_()
+
+            # Limpiamos el campo del documento:
+            self.documento.setText('')
+
+
+        # Si los datos estan correcto:
+        if (
+            self.datosCorrectos
+        ):
+
+            # Abrimos el archivo en modo de lectura:
+            self.file = open('datos/clientes.text', 'rb')
+
+            # Lista vacia para guardar los usuarios:
+            usuarios = []
+
+            while self.file:
+                linea = self.file.readline().decode('UTF-8')
+                # Obtenemos del string una lista con 11 datos separados por ;
+                lista = linea.split(";")
+
+                # Se para si ya no hay mas registros en el archivo
+                if linea == '':
+                    break
+
+                # Creamos un onejto tipo cliente llamado u
+                u = Cliente(
+                    lista[0],
+                    lista[1],
+                    lista[2],
+                    lista[3],
+                    lista[4],
+                    lista[5],
+                    lista[6],
+                    lista[7],
+                    lista[8],
+                    lista[9],
+                    lista[10],
+                )
+
+                # Metemos el objeto en la lista de usuario:
+                usuarios.append(u)
+
+            # Cerramos el archivo:
+            self.file.close()
+
+            # En este punto tenemos la lista de usuarios con todos los usuarios:
+
+            # Variable para controlar si existe el documento:
+            existeDocumento = False
+
+            # Buscamos en la lista usuario por usuario si existe la cedula:
+            for u in usuarios:
+
+                # comparamos el documento ingresado:
+                # si corresponde con el documento, es el usuario correcto:
+                if u.documento == self.documento.text():
+
+                    #Mostramos las preguntas en el formulario
+                    self.pregunta1.setText(u.pregunta1)
+                    self.pregunta2.setText(u.pregunta2)
+                    self.pregunta3.setText(u.pregunta3)
+                    # Indicamos que encontramos el documento:
+                    existeDocumento = True
+                    # Paramos el for:
+                    break
+
+            # Si no existe un usuario con este documento:
+            if(
+                    not existeDocumento
+            ):
+                # Escribimos el texto explicativo:
+                self.mensaje.setText("No existe un usuario con este documento:\n"
+                                     + self.documento.text())
+
+                # Hacemos que la ventana de dialogo se vea:
+                self.ventanaDialogo.exec_()
+
+
+
+
 
     # Metodo del botonRecuperar
     def accion_botonRecuperar(self):
